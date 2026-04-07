@@ -291,6 +291,55 @@
     .ctag.sci  { background: #e8f0e0; color: #3a6b2a; }
     .ctag.cs   { background: #e0eaf8; color: #1b365d; }
 
+    /* ZIP input */
+    .zip-input-wrap {
+      display: flex;
+      gap: 6px;
+      padding-left: 34px;
+      padding-right: 12px;
+    }
+    .zip-input {
+      flex: 1;
+      padding: 8px 13px;
+      border: 2px solid #1b365d;
+      border-radius: 99px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      outline: none;
+      color: #2c2b2f;
+      min-width: 0;
+    }
+    .zip-input:focus { border-color: #61ad00; }
+    .zip-submit {
+      background: #1b365d;
+      color: white;
+      border: none;
+      border-radius: 99px;
+      padding: 8px 16px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+      flex-shrink: 0;
+    }
+    .zip-submit:hover { background: #162c50; }
+
+    /* Back button */
+    .back-link {
+      background: none;
+      border: none;
+      color: #82ba50;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 2px 0 2px 34px;
+      font-family: inherit;
+      opacity: 0.8;
+      display: block;
+    }
+    .back-link:hover { opacity: 1; text-decoration: underline; }
+
     /* Result cards */
     .result-cards-wrap { padding-left: 34px; display: flex; flex-direction: column; gap: 7px; }
     .result-card {
@@ -401,46 +450,131 @@
 <script>
   // ── Campus data ──────────────────────────────────────────
   const CAMPUSES = [
-    { id:'virtual',        name:'Virtual Campus',   city:'Online',           state:'Online',  group:'🌐 Online',      aySubjects:['math','la'],                    hasSummerStem:false, url:'https://virtual.aopsacademy.org/' },
-    { id:'fremont',        name:'Fremont',          city:'Fremont',          state:'CA',      group:'🌴 California',  aySubjects:['math','la','science'],           hasSummerStem:true,  url:'https://aopsacademy.org/campus/fremont' },
-    { id:'irvine',         name:'Irvine',           city:'Irvine',           state:'CA',      group:'🌴 California',  aySubjects:['math','la'],                    hasSummerStem:true,  url:'https://aopsacademy.org/campus/irvine' },
-    { id:'mountain-view',  name:'Mountain View',    city:'Mountain View',    state:'CA',      group:'🌴 California',  aySubjects:['math','la','science'],           hasSummerStem:true,  url:'https://aopsacademy.org/campus/mountain-view' },
-    { id:'pasadena',       name:'Pasadena',         city:'Pasadena',         state:'CA',      group:'🌴 California',  aySubjects:['math','la'],                    hasSummerStem:true,  url:'https://aopsacademy.org/campus/pasadena' },
-    { id:'pleasanton',     name:'Pleasanton',       city:'Pleasanton',       state:'CA',      group:'🌴 California',  aySubjects:['math','la','science','cs'],      hasSummerStem:true,  url:'https://aopsacademy.org/campus/pleasanton' },
-    { id:'san-diego',      name:'San Diego',        city:'San Diego',        state:'CA',      group:'🌴 California',  aySubjects:['math','la'],                    hasSummerStem:true,  url:'https://aopsacademy.org/campus/san-diego' },
-    { id:'san-mateo',      name:'San Mateo',        city:'San Mateo',        state:'CA',      group:'🌴 California',  aySubjects:['math','la','science'],           hasSummerStem:true,  url:'https://aopsacademy.org/campus/san-mateo' },
-    { id:'santa-clara',    name:'Santa Clara',      city:'Santa Clara',      state:'CA',      group:'🌴 California',  aySubjects:['math','la','science'],           hasSummerStem:true,  url:'https://aopsacademy.org/campus/santa-clara' },
-    { id:'saratoga',       name:'Saratoga',         city:'Saratoga',         state:'CA',      group:'🌴 California',  aySubjects:['math','la','science','cs'],      hasSummerStem:true,  url:'https://aopsacademy.org/campus/saratoga' },
-    { id:'johns-creek',    name:'Johns Creek',      city:'Johns Creek',      state:'GA',      group:'🗺️ Other Locations', aySubjects:['math','la'],               hasSummerStem:true,  url:'https://aopsacademy.org/campus/johns-creek' },
-    { id:'northbrook',     name:'Northbrook',       city:'Northbrook',       state:'IL',      group:'🗺️ Other Locations', aySubjects:['math','la'],               hasSummerStem:true,  url:'https://aopsacademy.org/campus/northbrook' },
-    { id:'gaithersburg',   name:'Gaithersburg',     city:'Gaithersburg',     state:'MD',      group:'🗺️ Other Locations', aySubjects:['math','la'],               hasSummerStem:true,  url:'https://aopsacademy.org/campus/gaithersburg' },
-    { id:'lexington',      name:'Lexington',        city:'Lexington',        state:'MA',      group:'🗺️ Other Locations', aySubjects:['math','la','science'],      hasSummerStem:true,  url:'https://lexington.aopsacademy.org/' },
-    { id:'millburn',       name:'Millburn',         city:'Millburn',         state:'NJ',      group:'🗺️ Other Locations', aySubjects:['math','la'],               hasSummerStem:true,  url:'https://millburn.aopsacademy.org/' },
-    { id:'princeton',      name:'Princeton',        city:'Princeton',        state:'NJ',      group:'🗺️ Other Locations', aySubjects:['math','la'],               hasSummerStem:true,  url:'https://princeton.aopsacademy.org/' },
-    { id:'upper-west-side',name:'Upper West Side',  city:'New York',         state:'NY',      group:'🗺️ Other Locations', aySubjects:['math','la'],               hasSummerStem:true,  url:'https://aopsacademy.org/campus/upper-west-side' },
-    { id:'morrisville',    name:'Morrisville',      city:'Morrisville',      state:'NC',      group:'🗺️ Other Locations', aySubjects:['math','la'],               hasSummerStem:true,  url:'https://aopsacademy.org/campus/morrisville' },
-    { id:'portland',       name:'Portland',         city:'Portland',         state:'OR',      group:'🗺️ Other Locations', aySubjects:['math','la'],               hasSummerStem:true,  url:'https://aopsacademy.org/campus/portland' },
-    { id:'frisco',         name:'Frisco',           city:'Frisco',           state:'TX',      group:'🗺️ Other Locations', aySubjects:['math','la'],               hasSummerStem:true,  url:'https://aopsacademy.org/campus/frisco' },
-    { id:'vienna',         name:'Vienna',           city:'Vienna',           state:'VA',      group:'🗺️ Other Locations', aySubjects:['math','la'],               hasSummerStem:true,  url:'https://vienna.aopsacademy.org/' },
-    { id:'bellevue',       name:'Bellevue',         city:'Bellevue',         state:'WA',      group:'🗺️ Other Locations', aySubjects:['math','la'],               hasSummerStem:true,  url:'https://bellevue.aopsacademy.org/' },
-    { id:'redmond',        name:'Redmond',          city:'Redmond',          state:'WA',      group:'🗺️ Other Locations', aySubjects:['math','la'],               hasSummerStem:true,  url:'https://aopsacademy.org/campus/redmond' },
+    { id:'virtual',        name:'Virtual Campus',  state:'Online', group:'🌐 Online',          aySubjects:['math','la'],                hasSummerStem:false, lat:null,    lng:null,       url:'https://virtual.aopsacademy.org/' },
+    { id:'fremont',        name:'Fremont',         state:'CA',     group:'🌴 California',      aySubjects:['math','la','science'],      hasSummerStem:true,  lat:37.5485, lng:-121.9886,  url:'https://aopsacademy.org/campus/fremont' },
+    { id:'irvine',         name:'Irvine',          state:'CA',     group:'🌴 California',      aySubjects:['math','la'],                hasSummerStem:true,  lat:33.6846, lng:-117.8265,  url:'https://aopsacademy.org/campus/irvine' },
+    { id:'mountain-view',  name:'Mountain View',   state:'CA',     group:'🌴 California',      aySubjects:['math','la','science'],      hasSummerStem:true,  lat:37.3861, lng:-122.0839,  url:'https://aopsacademy.org/campus/mountain-view' },
+    { id:'pasadena',       name:'Pasadena',        state:'CA',     group:'🌴 California',      aySubjects:['math','la'],                hasSummerStem:true,  lat:34.1478, lng:-118.1445,  url:'https://aopsacademy.org/campus/pasadena' },
+    { id:'pleasanton',     name:'Pleasanton',      state:'CA',     group:'🌴 California',      aySubjects:['math','la','science','cs'], hasSummerStem:true,  lat:37.6624, lng:-121.8747,  url:'https://aopsacademy.org/campus/pleasanton' },
+    { id:'san-diego',      name:'San Diego',       state:'CA',     group:'🌴 California',      aySubjects:['math','la'],                hasSummerStem:true,  lat:32.7157, lng:-117.1611,  url:'https://aopsacademy.org/campus/san-diego' },
+    { id:'san-mateo',      name:'San Mateo',       state:'CA',     group:'🌴 California',      aySubjects:['math','la','science'],      hasSummerStem:true,  lat:37.5630, lng:-122.3255,  url:'https://aopsacademy.org/campus/san-mateo' },
+    { id:'santa-clara',    name:'Santa Clara',     state:'CA',     group:'🌴 California',      aySubjects:['math','la','science'],      hasSummerStem:true,  lat:37.3541, lng:-121.9552,  url:'https://aopsacademy.org/campus/santa-clara' },
+    { id:'saratoga',       name:'Saratoga',        state:'CA',     group:'🌴 California',      aySubjects:['math','la','science','cs'], hasSummerStem:true,  lat:37.2638, lng:-122.0231,  url:'https://aopsacademy.org/campus/saratoga' },
+    { id:'johns-creek',    name:'Johns Creek',     state:'GA',     group:'🗺️ Other Locations', aySubjects:['math','la'],                hasSummerStem:true,  lat:34.0290, lng:-84.1987,   url:'https://aopsacademy.org/campus/johns-creek' },
+    { id:'northbrook',     name:'Northbrook',      state:'IL',     group:'🗺️ Other Locations', aySubjects:['math','la'],                hasSummerStem:true,  lat:42.1253, lng:-87.8276,   url:'https://aopsacademy.org/campus/northbrook' },
+    { id:'gaithersburg',   name:'Gaithersburg',    state:'MD',     group:'🗺️ Other Locations', aySubjects:['math','la'],                hasSummerStem:true,  lat:39.1434, lng:-77.2014,   url:'https://aopsacademy.org/campus/gaithersburg' },
+    { id:'lexington',      name:'Lexington',       state:'MA',     group:'🗺️ Other Locations', aySubjects:['math','la','science'],      hasSummerStem:true,  lat:42.4473, lng:-71.2245,   url:'https://lexington.aopsacademy.org/' },
+    { id:'millburn',       name:'Millburn',        state:'NJ',     group:'🗺️ Other Locations', aySubjects:['math','la'],                hasSummerStem:true,  lat:40.7262, lng:-74.3032,   url:'https://millburn.aopsacademy.org/' },
+    { id:'princeton',      name:'Princeton',       state:'NJ',     group:'🗺️ Other Locations', aySubjects:['math','la'],                hasSummerStem:true,  lat:40.3573, lng:-74.6672,   url:'https://princeton.aopsacademy.org/' },
+    { id:'upper-west-side',name:'Upper West Side', state:'NY',     group:'🗺️ Other Locations', aySubjects:['math','la'],                hasSummerStem:true,  lat:40.7870, lng:-73.9754,   url:'https://aopsacademy.org/campus/upper-west-side' },
+    { id:'morrisville',    name:'Morrisville',     state:'NC',     group:'🗺️ Other Locations', aySubjects:['math','la'],                hasSummerStem:true,  lat:35.8229, lng:-78.8253,   url:'https://aopsacademy.org/campus/morrisville' },
+    { id:'portland',       name:'Portland',        state:'OR',     group:'🗺️ Other Locations', aySubjects:['math','la'],                hasSummerStem:true,  lat:45.5051, lng:-122.6750,  url:'https://aopsacademy.org/campus/portland' },
+    { id:'frisco',         name:'Frisco',          state:'TX',     group:'🗺️ Other Locations', aySubjects:['math','la'],                hasSummerStem:true,  lat:33.1507, lng:-96.8236,   url:'https://aopsacademy.org/campus/frisco' },
+    { id:'vienna',         name:'Vienna',          state:'VA',     group:'🗺️ Other Locations', aySubjects:['math','la'],                hasSummerStem:true,  lat:38.9012, lng:-77.2653,   url:'https://vienna.aopsacademy.org/' },
+    { id:'bellevue',       name:'Bellevue',        state:'WA',     group:'🗺️ Other Locations', aySubjects:['math','la'],                hasSummerStem:true,  lat:47.6101, lng:-122.2015,  url:'https://bellevue.aopsacademy.org/' },
+    { id:'redmond',        name:'Redmond',         state:'WA',     group:'🗺️ Other Locations', aySubjects:['math','la'],                hasSummerStem:true,  lat:47.6740, lng:-122.1215,  url:'https://aopsacademy.org/campus/redmond' },
   ];
 
   // ── App state ────────────────────────────────────────────
   const state   = {};
   let chatOpen  = false;
-  let botPhase  = 'greeting'; // 'greeting' | 'flow' | 'done'
+  let botPhase  = 'greeting';
 
-  // Conversation history: array of { botHtml, userText }
   let history   = [];
-  // Current bot message HTML (shown as last bot bubble)
   let curBotHtml = null;
-  // Current interactive options
-  let curType   = null;  // 'qr' | 'campus' | null
-  let qrItems   = [];    // [{ label, handler }]
+  let curType   = null;
+  let qrItems   = [];
 
   // ── Helpers ──────────────────────────────────────────────
   function getCampus() { return CAMPUSES.find(c => c.id === state.campus); }
+
+  function haversine(lat1, lon1, lat2, lon2) {
+    const R = 3958.8;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }
+
+  function findNearestCampus(userLat, userLng, placeName) {
+    let nearest = null, minDist = Infinity;
+    for (const c of CAMPUSES) {
+      if (!c.lat) continue;
+      const d = haversine(userLat, userLng, c.lat, c.lng);
+      if (d < minDist) { minDist = d; nearest = c; }
+    }
+    state.campus = nearest.id;
+    clearDownstream('campus');
+    const miles = Math.round(minDist);
+    curBotHtml = `Based on ${placeName}, your nearest campus is <strong>${nearest.name}</strong> — about ${miles} mile${miles === 1 ? '' : 's'} away. <a href="${nearest.url}" target="_blank" style="color:#61ad00;font-weight:700">View campus page →</a>`;
+    curType = null;
+    renderChat();
+    setTimeout(() => { advanceStep(); renderChat(); }, 1400);
+  }
+
+  function pickNotSure() {
+    history.push({ botHtml: curBotHtml, userText: "I'm not sure" });
+    curBotHtml = '<span class="typing-dots"><span></span><span></span><span></span></span>';
+    curType = null; qrItems = [];
+    renderChat();
+    setTimeout(() => {
+      curBotHtml = "No problem! I can use your device location to find the nearest campus, or you can enter your ZIP code.";
+      curType = 'locationinput';
+      renderChat();
+    }, 380);
+  }
+
+  function useMyLocation() {
+    if (!navigator.geolocation) {
+      curBotHtml = "Location isn't available in this browser. Please enter your ZIP code below instead.";
+      curType = 'zipinput';
+      renderChat();
+      return;
+    }
+    history.push({ botHtml: curBotHtml, userText: '📍 Use my location' });
+    curBotHtml = '<span class="typing-dots"><span></span><span></span><span></span></span>';
+    curType = null;
+    renderChat();
+    navigator.geolocation.getCurrentPosition(
+      pos => { findNearestCampus(pos.coords.latitude, pos.coords.longitude, 'your location'); },
+      ()  => {
+        curBotHtml = "I wasn't able to access your location. No worries — enter your ZIP code below instead.";
+        curType = 'zipinput';
+        renderChat();
+        requestAnimationFrame(() => { const el = document.getElementById('zipInput'); if (el) el.focus(); });
+      }
+    );
+  }
+
+  async function submitZip() {
+    const el = document.getElementById('zipInput');
+    const zip = el ? el.value.trim() : '';
+    if (!/^\d{5}$/.test(zip)) {
+      if (el) el.style.borderColor = '#d50032';
+      return;
+    }
+    history.push({ botHtml: curBotHtml, userText: zip });
+    curBotHtml = '<span class="typing-dots"><span></span><span></span><span></span></span>';
+    curType = null;
+    renderChat();
+    try {
+      const res = await fetch(`https://api.zippopotam.us/us/${zip}`);
+      if (!res.ok) throw new Error('not found');
+      const data = await res.json();
+      const userLat = parseFloat(data.places[0].latitude);
+      const userLng = parseFloat(data.places[0].longitude);
+      const placeName = `${data.places[0]['place name']}, ${data.places[0]['state abbreviation']}`;
+      findNearestCampus(userLat, userLng, placeName);
+    } catch (e) {
+      curBotHtml = "Hmm, I couldn't look up that ZIP code right now. Try clicking \"Use my location\" above, or pick your campus from the list.";
+      curType = 'zipinput';
+      renderChat();
+      requestAnimationFrame(() => {
+        const inp = document.getElementById('zipInput');
+        if (inp) { inp.style.borderColor = '#d50032'; inp.focus(); }
+      });
+    }
+  }
 
   function courseUrl(slug) {
     const c = getCampus();
@@ -485,15 +619,14 @@
       ]
     });
 
-    const programOpts = [
-      { value:'academic', icon:'📚', label:'Academic Year Course', desc:'Fall, winter, or spring semester' },
-      { value:'summer',   icon:'☀️', label:'Summer Camp', desc:'Intensive 2-week programs' },
-      { value:'both',     icon:'🔍', label:'Open to Both', desc:"Show me what fits best" },
-    ];
     steps.push({
       id: 'program',
       question: 'What type of program are you looking for?',
-      options: programOpts
+      options: [
+        { value:'academic', icon:'📚', label:'Academic Year Course', desc:'Fall, winter, or spring semester' },
+        { value:'summer',   icon:'☀️', label:'Summer Camp',          desc:'Intensive 2-week programs' },
+        { value:'both',     icon:'🔍', label:'Open to Both',         desc:"Show me what fits best" },
+      ]
     });
 
     if (state.campus) {
@@ -502,13 +635,13 @@
       const isSU = state.program === 'summer' || state.program === 'both';
 
       const subjectOpts = [
-        { value:'math', icon:'➗', label:'Math',                   desc:'Algebra, geometry, problem-solving & more' },
+        { value:'math', icon:'➗', label:'Math',                    desc:'Algebra, geometry, problem-solving & more' },
         { value:'la',   icon:'✍️', label:'Language Arts / Writing', desc:'Reading, writing & critical thinking' },
         { value:'both', icon:'🤔', label:'Both / Not Sure',         desc:"Help me figure out what's best" },
       ];
-      if (isAY && aySubjects.includes('science')) subjectOpts.push({ value:'science', icon:'🔬', label:'Science', desc:'Earth, life & physical sciences' });
+      if (isAY && aySubjects.includes('science')) subjectOpts.push({ value:'science', icon:'🔬', label:'Science',          desc:'Earth, life & physical sciences' });
       if (isAY && aySubjects.includes('cs'))      subjectOpts.push({ value:'cs',      icon:'💻', label:'Computer Science', desc:'Programming & computational thinking' });
-      if (isSU && campus && campus.hasSummerStem) subjectOpts.push({ value:'stem',    icon:'🧪', label:'Science / STEM', desc:'Hands-on experiments (summer only)' });
+      if (isSU && campus && campus.hasSummerStem) subjectOpts.push({ value:'stem',    icon:'🧪', label:'Science / STEM',   desc:'Hands-on experiments (summer only)' });
 
       steps.push({ id:'subject', question:'What subject interests your student?', options: subjectOpts });
     }
@@ -659,6 +792,7 @@
     return `<div class="msg bot"><div class="msg-av">🤖</div><div class="bubble">${html}</div></div>`;
   }
   function userBubble(text) {
+    if (!text) return '';
     return `<div class="msg user"><div class="bubble">${text}</div></div>`;
   }
 
@@ -666,16 +800,13 @@
     const body = document.getElementById('chatBody');
     let html = '';
 
-    // Past exchanges
     for (const h of history) {
       html += botBubble(h.botHtml);
       html += userBubble(h.userText);
     }
 
-    // Current bot message
     if (curBotHtml !== null) html += botBubble(curBotHtml);
 
-    // Current interaction
     if (curType === 'qr' && qrItems.length) {
       html += '<div class="qr-group">';
       qrItems.forEach((item, i) => {
@@ -684,6 +815,26 @@
       html += '</div>';
     } else if (curType === 'campus') {
       html += buildCampusPicker();
+    } else if (curType === 'locationinput') {
+      html += `<div class="zip-input-wrap" style="flex-direction:column;gap:8px">
+        <button class="zip-submit" style="width:100%;border-radius:10px" onclick="useMyLocation()">📍 Use my location</button>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input id="zipInput" class="zip-input" type="text" placeholder="Or enter ZIP code" maxlength="5" inputmode="numeric" pattern="[0-9]*"
+            onkeydown="if(event.key==='Enter') submitZip()">
+          <button class="zip-submit" onclick="submitZip()">→</button>
+        </div>
+      </div>`;
+    } else if (curType === 'zipinput') {
+      html += `<div class="zip-input-wrap">
+        <input id="zipInput" class="zip-input" type="text" placeholder="ZIP code" maxlength="5" inputmode="numeric" pattern="[0-9]*"
+          onkeydown="if(event.key==='Enter') submitZip()">
+        <button class="zip-submit" onclick="submitZip()">→</button>
+      </div>`;
+    }
+
+    const showBack = botPhase !== 'done' && (_stepIndex > 0 || curType === 'locationinput' || curType === 'zipinput');
+    if (showBack) {
+      html += `<button class="back-link" onclick="goBack()">← Back</button>`;
     }
 
     body.innerHTML = html;
@@ -709,6 +860,9 @@
       html += '</div>';
     }
     html += '</div></div>';
+    html += `<div style="padding:8px 0 2px 34px">
+      <button class="campus-chip" onclick="pickNotSure()" style="border-color:#82ba50;color:#3a6020;width:calc(100% - 34px);justify-content:center">🤷 Not sure — help me find the nearest campus</button>
+    </div>`;
     return html;
   }
 
@@ -734,7 +888,41 @@
   }
 
   // ── Flow control ─────────────────────────────────────────
-  let _stepIndex = -1; // -1 = before first question
+  let _stepIndex = -1;
+
+  function goBack() {
+    // Going back from zip/location input — return to campus picker
+    if (curType === 'locationinput' || curType === 'zipinput') {
+      if (history.length > 0) history.pop();
+      curBotHtml = null; curType = null; qrItems = [];
+      showCurrentStep(); renderChat(); return;
+    }
+
+    if (_stepIndex <= 0) return;
+
+    if (botPhase === 'done') botPhase = 'flow';
+
+    const steps = buildSteps();
+    const targetIdx = _stepIndex - 1;
+
+    if (targetIdx >= 0 && targetIdx < steps.length) {
+      const targetStep = steps[targetIdx];
+      if (targetStep.id) {
+        clearDownstream(targetStep.id);
+        delete state[targetStep.id];
+      }
+    }
+
+    if (history.length > 0) history.pop();
+
+    _stepIndex = targetIdx;
+    curBotHtml = null;
+    curType = null;
+    qrItems = [];
+
+    showCurrentStep();
+    renderChat();
+  }
 
   function advanceStep() {
     _stepIndex++;
@@ -790,16 +978,11 @@
       </div>`;
     }
 
-    let resultHtml = `Here's what I'd recommend at <strong>${campusLabel}</strong>:`;
-    resultHtml += `</div>`; // close bubble early so cards appear below
-
-    // Result cards
     let cardsHtml = '<div class="result-cards-wrap">';
-    if (primary) cardsHtml += card(primary, true,  '⭐ Best Match');
+    if (primary) cardsHtml += card(primary, true, '⭐ Best Match');
     for (const r of others) cardsHtml += card(r, false, 'Also Consider');
     cardsHtml += '</div>';
 
-    // Consultation note + action button
     const prog = state.program;
     let consultText, actionBtn;
     if (prog === 'summer') {
@@ -820,11 +1003,11 @@
     botPhase = 'done';
     renderChat();
 
-    // Append result cards, consult box, and restart button after bot bubble
     const body = document.getElementById('chatBody');
     body.insertAdjacentHTML('beforeend', cardsHtml + consultHtml +
       `<div class="qr-group" style="padding-left:0">
          ${actionBtn}
+         <button class="qr-btn" onclick="goBack()" style="border-color:#94a9c4;color:#94a9c4">← Back</button>
          <button class="qr-btn" onclick="restartChat()" style="border-color:#94a9c4;color:#94a9c4">↩ Start over</button>
        </div>`);
     body.scrollTop = body.scrollHeight;
@@ -837,7 +1020,6 @@
     document.getElementById('launcher').innerHTML = '<span style="font-size:1rem">✕</span> Close';
 
     if (history.length === 0 && curBotHtml === null) {
-      // First open — show greeting
       curBotHtml = 'Hello! Welcome to <strong>AoPS Academy!</strong> 👋 I\'m Solver Bot — I\'m here to help you find the perfect course or camp for your student.<br><span class="bubble-sub">This usually takes less than a minute.</span>';
       curType = 'qr';
       qrItems = [
