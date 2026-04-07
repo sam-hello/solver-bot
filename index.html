@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Solver Bot | AoPS Academy</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231b365d'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='Georgia,serif' font-weight='700' font-size='38' fill='%2361ad00'%3EA%3C/text%3E%3C/svg%3E">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -375,15 +376,31 @@
     .rlink:hover { text-decoration: underline; }
 
     /* Consult box */
-    .consult-wrap { padding-left: 34px; }
+    .consult-wrap { padding-left: 34px; margin-top: 6px; }
     .consult-box {
-      background: #f2f9e8;
-      border: 1px solid #c2de98;
-      border-radius: 10px;
-      padding: 9px 12px;
+      display: block;
+      border-radius: 12px;
+      padding: 12px 14px;
       font-size: 0.77rem;
-      color: #2e5a10;
-      line-height: 1.45;
+      line-height: 1.5;
+      text-decoration: none;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+    .consult-box:hover { opacity: 0.93; transform: translateY(-2px); box-shadow: 0 4px 14px rgba(0,0,0,0.18); }
+    .consult-box.ay { background: #1b365d; color: #e8f0fb; }
+    .consult-box.ay strong { color: #ffffff; }
+    .consult-box.summer { background: #61ad00; color: #e8f7d0; }
+    .consult-box.summer strong { color: #ffffff; }
+    .consult-cta {
+      margin-top: 9px;
+      font-weight: 700;
+      font-size: 0.84rem;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
   </style>
 </head>
@@ -543,7 +560,7 @@
     navigator.geolocation.getCurrentPosition(
       pos => { findNearestCampus(pos.coords.latitude, pos.coords.longitude, 'your location'); },
       ()  => {
-        curBotHtml = "No problem! Location access was blocked — you can enter your ZIP code below instead.";
+        curBotHtml = "Location access was blocked — you can enter your ZIP code below instead.";
         curType = 'locationinput';
         renderChat();
         requestAnimationFrame(() => { const el = document.getElementById('zipInput'); if (el) el.focus(); });
@@ -990,19 +1007,23 @@
     cardsHtml += '</div>';
 
     const prog = state.program;
-    let consultText, actionBtn;
+    let consultHtml;
     if (prog === 'summer') {
-      consultText = '☀️ <strong>Next step:</strong> Summer camps don\'t require a placement consultation — just click on a course above to enroll directly on our website.';
-      actionBtn = `<a class="qr-btn" href="${campusUrl}" target="_blank" style="text-decoration:none">Visit ${campus ? campus.name : 'AoPS'} →</a>`;
+      consultHtml = `<div class="consult-wrap"><a class="consult-box summer" href="${campusUrl}" target="_blank">
+        ☀️ <strong>Spots fill fast!</strong> Summer camps don't require a consultation — you can enroll directly on our website.
+        <div class="consult-cta">Sign Up Now →</div>
+      </a></div>`;
     } else if (prog === 'both') {
-      consultText = '💡 <strong>Next step:</strong> Academic year courses require a free placement consultation. Summer camps can be enrolled in directly by clicking on the course above.';
-      actionBtn = `<a class="qr-btn" href="https://aopsacademy.org/contact-us" target="_blank" style="text-decoration:none">Request a consultation →</a>`;
+      consultHtml = `<div class="consult-wrap"><a class="consult-box ay" href="https://aopsacademy.org/contact-us" target="_blank">
+        💡 <strong>Next step:</strong> Academic year courses require a free placement consultation. Summer camps can be enrolled in directly by clicking on the course above.
+        <div class="consult-cta">Request a Consultation →</div>
+      </a></div>`;
     } else {
-      consultText = '💡 <strong>Next step:</strong> Academic year courses require a free placement consultation before enrollment.';
-      actionBtn = `<a class="qr-btn" href="https://aopsacademy.org/contact-us" target="_blank" style="text-decoration:none">Request a consultation →</a>`;
+      consultHtml = `<div class="consult-wrap"><a class="consult-box ay" href="https://aopsacademy.org/contact-us" target="_blank">
+        💡 <strong>Next step:</strong> Academic year courses require a free placement consultation before enrollment.
+        <div class="consult-cta">Request a Consultation →</div>
+      </a></div>`;
     }
-
-    const consultHtml = `<div class="consult-wrap"><div class="consult-box">${consultText}</div></div>`;
 
     curBotHtml = `Here's what I'd recommend at <strong>${campusLabel}</strong>:`;
     curType = null;
@@ -1011,8 +1032,7 @@
 
     const body = document.getElementById('chatBody');
     body.insertAdjacentHTML('beforeend', cardsHtml + consultHtml +
-      `<div class="qr-group" style="padding-left:0">
-         ${actionBtn}
+      `<div class="qr-group" style="padding-left:0;justify-content:center">
          <button class="qr-btn" onclick="goBack()" style="border-color:#94a9c4;color:#94a9c4">← Back</button>
          <button class="qr-btn" onclick="restartChat()" style="border-color:#94a9c4;color:#94a9c4">↩ Start over</button>
        </div>`);
