@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solver Bot | AoPS Academy</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #f5f4f3;
+      min-height: 100vh;
+    }
+
+    /* ── Mock page background ────────────────────────────── */
+    .page-nav {
+      background: #1b365d;
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .page-logo { color: white; font-size: 1.05rem; font-weight: 700; }
+    .page-logo span { color: #61ad00; }
+    .page-nav-links { margin-left: auto; display: flex; gap: 24px; }
+    .page-nav-links a { color: #a8cfa8; font-size: 0.88rem; text-decoration: none; font-weight: 500; }
+    .page-nav-links a:hover { color: white; }
+
+    .page-hero {
+      max-width: 780px;
+      margin: 70px auto 0;
+      padding: 0 32px;
+      text-align: center;
+    }
+    .page-hero h1 {
+      font-size: 2.3rem;
+      font-weight: 800;
+      color: #1b365d;
+      line-height: 1.2;
+      margin-bottom: 16px;
+    }
+    .page-hero h1 span { color: #61ad00; }
+    .page-hero p {
+      color: #64748b;
+      font-size: 1.05rem;
+      line-height: 1.6;
+      max-width: 560px;
+      margin: 0 auto 32px;
+    }
+    .page-cta {
+      display: inline-block;
+      background: #61ad00;
+      color: white;
+      font-weight: 700;
+      padding: 14px 28px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-size: 1rem;
+    }
+    .page-cards {
+      display: flex;
+      gap: 16px;
+      max-width: 780px;
+      margin: 56px auto 0;
+      padding: 0 32px;
+      flex-wrap: wrap;
+    }
+    .page-card {
+      flex: 1;
+      min-width: 180px;
+      background: white;
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    }
+    .page-card .icon { font-size: 1.8rem; margin-bottom: 10px; }
+    .page-card h3 { font-size: 0.95rem; color: #1b365d; margin-bottom: 6px; font-weight: 700; }
+    .page-card p { font-size: 0.82rem; color: #64748b; line-height: 1.4; }
+
+    /* ── Chat Launcher ───────────────────────────────────── */
+    .launcher {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #1b365d;
+      color: white;
+      border: none;
+      padding: 14px 20px;
+      border-radius: 99px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.93rem;
+      font-weight: 700;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+      z-index: 1000;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+      font-family: inherit;
+    }
+    .launcher:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 28px rgba(0,0,0,0.3);
+      background: #162c50;
+    }
+    .launcher-dot {
+      width: 8px; height: 8px;
+      background: #61ad00;
+      border-radius: 50%;
+      animation: blink 2.2s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.35; }
+    }
+
+    /* ── Chat Window ─────────────────────────────────────── */
+    .chat-window {
+      position: fixed;
+      bottom: 90px;
+      right: 24px;
+      width: 364px;
+      height: 530px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 48px rgba(0,0,0,0.22);
+      display: flex;
+      flex-direction: column;
+      z-index: 999;
+      overflow: hidden;
+      transform-origin: bottom right;
+      transition: transform 0.25s cubic-bezier(.4,0,.2,1), opacity 0.25s;
+    }
+    .chat-window.hidden {
+      transform: scale(0.85) translateY(16px);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Header */
+    .chat-header {
+      background: #1b365d;
+      padding: 13px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .chat-bot-avatar {
+      width: 36px; height: 36px;
+      background: #61ad00;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .chat-bot-info { flex: 1; }
+    .chat-bot-name { color: white; font-weight: 700; font-size: 0.93rem; }
+    .chat-bot-status { color: #8fcf60; font-size: 0.72rem; margin-top: 1px; }
+    .chat-close-btn {
+      background: none; border: none;
+      color: #8fcf60; font-size: 1.3rem;
+      cursor: pointer; padding: 4px; line-height: 1;
+      transition: color 0.15s; font-family: inherit;
+    }
+    .chat-close-btn:hover { color: white; }
+
+    /* Body */
+    .chat-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 12px 10px;
+      background: #f0f5ea;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      scroll-behavior: smooth;
+    }
+    .chat-body::-webkit-scrollbar { width: 4px; }
+    .chat-body::-webkit-scrollbar-thumb { background: #b8d4a0; border-radius: 2px; }
+
+    /* Messages */
+    .msg { display: flex; align-items: flex-end; gap: 7px; }
+    .msg.bot { justify-content: flex-start; }
+    .msg.user { justify-content: flex-end; }
+
+    .msg-av {
+      width: 27px; height: 27px;
+      background: #1b365d;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem;
+      flex-shrink: 0;
+    }
+    .bubble {
+      padding: 9px 13px;
+      border-radius: 17px;
+      font-size: 0.86rem;
+      line-height: 1.5;
+      max-width: 82%;
+    }
+    .msg.bot .bubble {
+      background: white;
+      color: #1e293b;
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .msg.user .bubble {
+      background: #1b365d;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+    .bubble-sub { font-size: 0.78rem; color: #7a9e60; display: block; margin-top: 3px; }
+
+    /* Typing dots */
+    .typing-dots { display: inline-flex; gap: 3px; align-items: center; padding: 3px 0; }
+    .typing-dots span {
+      width: 6px; height: 6px;
+      background: #88c060; border-radius: 50%;
+      animation: td 1.1s ease-in-out infinite;
+      display: inline-block;
+    }
+    .typing-dots span:nth-child(2) { animation-delay: 0.18s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.36s; }
+    @keyframes td {
+      0%, 100% { transform: translateY(0); opacity: 0.4; }
+      50% { transform: translateY(-4px); opacity: 1; }
+    }
+
+    /* Quick replies */
+    .qr-group {
+      display: flex; flex-wrap: wrap; gap: 7px;
+      padding-left: 34px;
+    }
+    .qr-btn {
+      padding: 7px 13px;
+      background: white;
+      border: 2px solid #1b365d;
+      border-radius: 99px;
+      color: #1b365d;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+    .qr-btn:hover { background: #1b365d; color: white; }
+
+    /* Campus picker */
+    .campus-chat-wrap { padding-left: 34px; }
+    .campus-chat-box {
+      background: white;
+      border-radius: 13px;
+      padding: 10px 11px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      max-height: 210px;
+      overflow-y: auto;
+    }
+    .campus-chat-box::-webkit-scrollbar { width: 3px; }
+    .campus-chat-box::-webkit-scrollbar-thumb { background: #b8d4a0; border-radius: 2px; }
+    .campus-grp-hd {
+      font-size: 0.68rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      color: #82ba50; margin: 8px 0 5px;
+    }
+    .campus-grp-hd:first-child { margin-top: 0; }
+    .campus-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+    .campus-chip {
+      padding: 5px 10px;
+      border: 1.5px solid #e3eaf3;
+      border-radius: 99px;
+      background: white;
+      cursor: pointer;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: #344a6b;
+      transition: border-color 0.15s, background 0.15s;
+      white-space: nowrap;
+      display: inline-flex; align-items: center; gap: 4px;
+      font-family: inherit;
+    }
+    .campus-chip:hover { border-color: #1b365d; background: #eef7e2; }
+    .ctag {
+      font-size: 0.58rem; font-weight: 700;
+      padding: 1px 4px; border-radius: 3px;
+      text-transform: uppercase; letter-spacing: 0.03em;
+    }
+    .ctag.sci  { background: #e8f0e0; color: #3a6b2a; }
+    .ctag.cs   { background: #e0eaf8; color: #1b365d; }
+
+    /* Result cards */
+    .result-cards-wrap { padding-left: 34px; display: flex; flex-direction: column; gap: 7px; }
+    .result-card {
+      background: white;
+      border: 2px solid #e3eaf3;
+      border-radius: 12px;
+      padding: 11px 13px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .result-card.primary { border-color: #1b365d; background: #f2f8e8; }
+    .rbadge {
+      font-size: 0.66rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px;
+    }
+    .result-card.primary .rbadge { color: #61ad00; }
+    .result-card:not(.primary) .rbadge { color: #82ba50; }
+    .rtitle { font-size: 0.86rem; font-weight: 700; color: #1b365d; margin-bottom: 4px; }
+    .rdesc  { font-size: 0.76rem; color: #4b6080; line-height: 1.45; }
+    .rfooter {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-top: 7px;
+      flex-wrap: wrap; gap: 4px;
+    }
+    .rtype {
+      font-size: 0.68rem; font-weight: 700;
+      background: #e4f2d4; color: #1b365d;
+      padding: 2px 8px; border-radius: 99px;
+    }
+    .rlink {
+      font-size: 0.76rem; font-weight: 700;
+      color: #61ad00; text-decoration: none;
+    }
+    .rlink:hover { text-decoration: underline; }
+
+    /* Consult box */
+    .consult-wrap { padding-left: 34px; }
+    .consult-box {
+      background: #f2f9e8;
+      border: 1px solid #c2de98;
+      border-radius: 10px;
+      padding: 9px 12px;
+      font-size: 0.77rem;
+      color: #2e5a10;
+      line-height: 1.45;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Mock page background ────────────────────────────── -->
+<nav class="page-nav">
+  <div style="width:32px;height:32px;background:#61ad00;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:900;color:white;font-size:1rem;">A</div>
+  <div class="page-logo">AoPS <span>Academy</span></div>
+  <div class="page-nav-links">
+    <a href="#">Courses</a>
+    <a href="#">Summer Camps</a>
+    <a href="#">Campuses</a>
+    <a href="#">About</a>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <h1>Advanced Math &amp; Language Arts<br>for Grades <span>1–12</span></h1>
+  <p>AoPS Academy offers rigorous, enriching courses for high-performing students — taught by world-class instructors who love their subjects.</p>
+  <a href="#" class="page-cta">Explore Courses</a>
+</div>
+
+<div class="page-cards">
+  <div class="page-card">
+    <div class="icon">➗</div>
+    <h3>Math</h3>
+    <p>From Beast Academy to Calculus and contest prep — a full K–12 progression.</p>
+  </div>
+  <div class="page-card">
+    <div class="icon">✍️</div>
+    <h3>Language Arts</h3>
+    <p>Reading, writing, rhetoric, and critical thinking for motivated students.</p>
+  </div>
+  <div class="page-card">
+    <div class="icon">🔬</div>
+    <h3>Science</h3>
+    <p>Hands-on science courses at select campuses for grades 3–12.</p>
+  </div>
+  <div class="page-card">
+    <div class="icon">☀️</div>
+    <h3>Summer Camps</h3>
+    <p>Intensive 2-week camps in math, writing, and STEM at campuses nationwide.</p>
+  </div>
+</div>
+
+<!-- ── Solver Bot Widget ──────────────────────────────── -->
+<div id="chatWindow" class="chat-window hidden">
+  <div class="chat-header">
+    <div class="chat-bot-avatar">🤖</div>
+    <div class="chat-bot-info">
+      <div class="chat-bot-name">Solver Bot</div>
+      <div class="chat-bot-status">AoPS Academy · Course Finder</div>
+    </div>
+    <button class="chat-close-btn" onclick="closeChat()" aria-label="Close">✕</button>
+  </div>
+  <div id="chatBody" class="chat-body"></div>
+</div>
+
+<button class="launcher" id="launcher" onclick="toggleChat()">
+  <span class="launcher-dot"></span> Chat with Solver Bot
+</button>
+
+<script>
+  // ── Campus data ──────────────────────────────────────────
+  const CAMPUSES = [
+    { id:'virtual',        name:'Virtual Campus',   city:'Online',           state:'Online',  group:'🌐 Online',      aySubjects:['math','la'],                    hasSummerStem:false, url:'https://virtual.aopsacademy.org/' },
+    { id:'fremont',        name:'Fremont',          city:'Fremont',          state:'CA',      group:'🌴 California',  aySubjects:['math','la','science'],           hasSummerStem:true,  url:'https://aopsacademy.org/campus/fremont' },
+    { id:'irvine',         name:'Irvine',           city:'Irvine',           state:'CA',      group:'🌴 California',  aySubjects:['math','la'],                    hasSummerStem:true,  url:'https://aopsacademy.org/campus/irvine' },
+    { id:'mountain-view',  name:'Mountain View',    city:'Mountain View',    state:'CA',      group:'🌴 California',  aySubjects:['math','la','science'],           hasSummerStem:true,  url:'https://aopsacademy.org/campus/mountain-view' },
+    { id:'pasadena',       name:'Pasadena',         city:'Pasadena',         state:'CA',      group:'🌴 California',  aySubjects:['math','la'],                    hasSummerStem:true,  url:'https://aopsacademy.org/campus/pasadena' },
+    { id:'pleasanton',     name:'Pleasanton',       city:'Pleasanton',       state:'CA',      group:'🌴 California',  aySubjects:['math','la','science','cs'],      hasSummerStem:true,  url:'https://aopsacademy.org/campus/pleasanton' },
+    { id:'san-diego',      name:'San Diego',        city:'San Diego',        state:'CA',      group:'🌴 California',  aySubjects:['math','la'],                    hasSummerStem:true,  url:'https://aopsacademy.org/campus/san-diego' },
+    { id:'san-mateo',      name:'San Mateo',        city:'San Mateo',        state:'CA',      group:'🌴 California',  aySubjects:['math','la','science'],           hasSummerStem:true,  url:'https://aopsacademy.org/campus/san-mateo' },
+    { id:'santa-clara',    name:'Santa Clara',      city:'Santa Clara',      state:'CA',      group:'🌴 California',  aySubjects:['math','la','science'],           hasSummerStem:true,  url:'https://aopsacademy.org/campus/santa-clara' },
+    { id:'saratoga',       name:'Saratoga',         city:'Saratoga',         state:'CA',      group:'🌴 California',  aySubjects:['math','la','science','cs'],      hasSummerStem:true,  url:'https://aopsacademy.org/campus/saratoga' },
+    { id:'johns-creek',    name:'Johns Creek',      city:'Johns Creek',      state:'GA',      group:'🗺️ Other Locations', aySubjects:['math','la'],               hasSummerStem:true,  url:'https://aopsacademy.org/campus/johns-creek' },
+    { id:'northbrook',     name:'Northbrook',       city:'Northbrook',       state:'IL',      group:'🗺️ Other Locations', aySubjects:['math','la'],               hasSummerStem:true,  url:'https://aopsacademy.org/campus/northbrook' },
+    { id:'gaithersburg',   name:'Gaithersburg',     city:'Gaithersburg',     state:'MD',      group:'🗺️ Other Locations', aySubjects:['math','la'],               hasSummerStem:true,  url:'https://aopsacademy.org/campus/gaithersburg' },
+    { id:'lexington',      name:'Lexington',        city:'Lexington',        state:'MA',      group:'🗺️ Other Locations', aySubjects:['math','la','science'],      hasSummerStem:true,  url:'https://lexington.aopsacademy.org/' },
+    { id:'millburn',       name:'Millburn',         city:'Millburn',         state:'NJ',      group:'🗺️ Other Locations', aySubjects:['math','la'],               hasSummerStem:true,  url:'https://millburn.aopsacademy.org/' },
+    { id:'princeton',      name:'Princeton',        city:'Princeton',        state:'NJ',      group:'🗺️ Other Locations', aySubjects:['math','la'],               hasSummerStem:true,  url:'https://princeton.aopsacademy.org/' },
+    { id:'upper-west-side',name:'Upper West Side',  city:'New York',         state:'NY',      group:'🗺️ Other Locations', aySubjects:['math','la'],               hasSummerStem:true,  url:'https://aopsacademy.org/campus/upper-west-side' },
+    { id:'morrisville',    name:'Morrisville',      city:'Morrisville',      state:'NC',      group:'🗺️ Other Locations', aySubjects:['math','la'],               hasSummerStem:true,  url:'https://aopsacademy.org/campus/morrisville' },
+    { id:'portland',       name:'Portland',         city:'Portland',         state:'OR',      group:'🗺️ Other Locations', aySubjects:['math','la'],               hasSummerStem:true,  url:'https://aopsacademy.org/campus/portland' },
+    { id:'frisco',         name:'Frisco',           city:'Frisco',           state:'TX',      group:'🗺️ Other Locations', aySubjects:['math','la'],               hasSummerStem:true,  url:'https://aopsacademy.org/campus/frisco' },
+    { id:'vienna',         name:'Vienna',           city:'Vienna',           state:'VA',      group:'🗺️ Other Locations', aySubjects:['math','la'],               hasSummerStem:true,  url:'https://vienna.aopsacademy.org/' },
+    { id:'bellevue',       name:'Bellevue',         city:'Bellevue',         state:'WA',      group:'🗺️ Other Locations', aySubjects:['math','la'],               hasSummerStem:true,  url:'https://bellevue.aopsacademy.org/' },
+    { id:'redmond',        name:'Redmond',          city:'Redmond',          state:'WA',      group:'🗺️ Other Locations', aySubjects:['math','la'],               hasSummerStem:true,  url:'https://aopsacademy.org/campus/redmond' },
+  ];
+
+  // ── App state ────────────────────────────────────────────
+  const state   = {};
+  let chatOpen  = false;
+  let botPhase  = 'greeting'; // 'greeting' | 'flow' | 'done'
+
+  // Conversation history: array of { botHtml, userText }
+  let history   = [];
+  // Current bot message HTML (shown as last bot bubble)
+  let curBotHtml = null;
+  // Current interactive options
+  let curType   = null;  // 'qr' | 'campus' | null
+  let qrItems   = [];    // [{ label, handler }]
+
+  // ── Helpers ──────────────────────────────────────────────
+  function getCampus() { return CAMPUSES.find(c => c.id === state.campus); }
+
+  function courseUrl(slug) {
+    const c = getCampus();
+    const base = 'https://aopsacademy.org/courses/course/' + slug;
+    return (c && c.id !== 'virtual') ? base + '?campus=' + c.id : base;
+  }
+  function catalogUrl(season) {
+    const c = getCampus();
+    const path = season === 'summer' ? 'summer' : 'academic-year';
+    const base = 'https://aopsacademy.org/courses/catalog/' + path;
+    return (c && c.id !== 'virtual') ? base + '?campus=' + c.id : base;
+  }
+  function clearDownstream(fieldId) {
+    const order = ['campus','grade','program','subject','level','contest'];
+    const idx = order.indexOf(fieldId);
+    for (let i = idx + 1; i < order.length; i++) delete state[order[i]];
+  }
+
+  // ── Step builder ─────────────────────────────────────────
+  function buildSteps() {
+    const steps = [];
+    const campus = getCampus();
+
+    steps.push({ id: 'campus', type: 'campus' });
+
+    steps.push({
+      id: 'grade',
+      question: 'What grade is your student in?',
+      options: [
+        { value:'1',  label:'1st Grade' },
+        { value:'2',  label:'2nd Grade' },
+        { value:'3',  label:'3rd Grade' },
+        { value:'4',  label:'4th Grade' },
+        { value:'5',  label:'5th Grade' },
+        { value:'6',  label:'6th Grade' },
+        { value:'7',  label:'7th Grade' },
+        { value:'8',  label:'8th Grade' },
+        { value:'9',  label:'9th Grade' },
+        { value:'10', label:'10th Grade' },
+        { value:'11', label:'11th Grade' },
+        { value:'12', label:'12th Grade' },
+      ]
+    });
+
+    const programOpts = [
+      { value:'academic', icon:'📚', label:'Academic Year Course', desc:'Fall, winter, or spring semester' },
+      { value:'summer',   icon:'☀️', label:'Summer Camp', desc:'Intensive 2-week programs' },
+      { value:'both',     icon:'🔍', label:'Open to Both', desc:"Show me what fits best" },
+    ];
+    steps.push({
+      id: 'program',
+      question: 'What type of program are you looking for?',
+      options: programOpts
+    });
+
+    if (state.campus) {
+      const aySubjects = campus ? campus.aySubjects : ['math','la'];
+      const isAY = !state.program || state.program === 'academic' || state.program === 'both';
+      const isSU = state.program === 'summer' || state.program === 'both';
+
+      const subjectOpts = [
+        { value:'math', icon:'➗', label:'Math',                   desc:'Algebra, geometry, problem-solving & more' },
+        { value:'la',   icon:'✍️', label:'Language Arts / Writing', desc:'Reading, writing & critical thinking' },
+        { value:'both', icon:'🤔', label:'Both / Not Sure',         desc:"Help me figure out what's best" },
+      ];
+      if (isAY && aySubjects.includes('science')) subjectOpts.push({ value:'science', icon:'🔬', label:'Science', desc:'Earth, life & physical sciences' });
+      if (isAY && aySubjects.includes('cs'))      subjectOpts.push({ value:'cs',      icon:'💻', label:'Computer Science', desc:'Programming & computational thinking' });
+      if (isSU && campus && campus.hasSummerStem) subjectOpts.push({ value:'stem',    icon:'🧪', label:'Science / STEM', desc:'Hands-on experiments (summer only)' });
+
+      steps.push({ id:'subject', question:'What subject interests your student?', options: subjectOpts });
+    }
+
+    if (state.subject && !['stem','cs'].includes(state.subject)) {
+      const sub = state.subject === 'math' ? 'math' : state.subject === 'la' ? 'language arts' : state.subject === 'science' ? 'science' : 'their subjects';
+      steps.push({
+        id: 'level',
+        question: `How would you describe their ${sub} ability?`,
+        options: [
+          { value:'onlevel',  icon:'⭐',    label:'At Grade Level',         desc:'Performing well, looking for enrichment' },
+          { value:'ahead',    icon:'⭐⭐',   label:'Somewhat Advanced',      desc:'Picks things up quickly' },
+          { value:'advanced', icon:'⭐⭐⭐', label:'Significantly Advanced', desc:'Working well beyond grade level' },
+          { value:'notsure',  icon:'❓',    label:'Not Sure',               desc:"We'd love help figuring it out" },
+        ]
+      });
+    }
+
+    if ((state.subject === 'math' || state.subject === 'both') && parseInt(state.grade) >= 6) {
+      steps.push({
+        id: 'contest',
+        question: 'Is your student interested in math competitions?',
+        options: [
+          { value:'yes',   icon:'🏆', label:'Yes — competitions excite them', desc:'MATHCOUNTS, AMC 8/10/12, or similar' },
+          { value:'maybe', icon:'🧩', label:'Maybe — they love hard problems', desc:"Haven't competed but enjoy a real challenge" },
+          { value:'no',    icon:'📖', label:'Not primarily',                   desc:"Looking for enrichment, not competition prep" },
+        ]
+      });
+    }
+
+    return steps;
+  }
+
+  // ── Recommendation engine ────────────────────────────────
+  function getRecommendations() {
+    const { grade, program, subject, level, contest } = state;
+    const campus = getCampus();
+    const gradeNum = parseInt(grade);
+    const gradeGroup = gradeNum <= 2 ? '1-2' : gradeNum <= 5 ? '3-5' : gradeNum <= 8 ? '6-8' : '9-12';
+    const isAY = program === 'academic' || program === 'both';
+    const isSU = program === 'summer'   || program === 'both';
+    const recs = [];
+    function push(primary, type, name, desc, url) { recs.push({ primary, type, name, desc, url: url || null }); }
+
+    if (subject === 'math' || subject === 'both') {
+      if (isAY) {
+        if (gradeGroup === '1-2') {
+          push(true, 'Academic Year','Math Level 1','Beast Academy–based course building number sense, foundational arithmetic, and early problem-solving through engaging puzzles and games.',courseUrl('math-level-1'));
+          push(false,'Academic Year','Math Level 2','Continues building arithmetic foundations with more advanced problem-solving for students who have mastered Level 1 concepts.',courseUrl('math-level-2'));
+        } else if (gradeGroup === '3-5') {
+          if (level === 'advanced') {
+            push(true,'Academic Year','Prealgebra','For students who have mastered elementary math — introduces variables, ratios, and algebraic reasoning as a strong bridge to middle school.',courseUrl('prealgebra'));
+          } else if (level === 'ahead') {
+            push(true, 'Academic Year','Math Level 4','Advanced elementary math covering fractions, decimals, and introductory algebraic thinking well beyond the standard curriculum.',courseUrl('math-level-4'));
+            push(false,'Academic Year','Math Level 5','Bridges elementary and middle school math with challenging problems in ratios, proportions, and pre-algebraic reasoning.',courseUrl('math-level-5'));
+          } else {
+            push(true, 'Academic Year','Math Level 3','Advanced elementary math covering fractions, early geometry, and creative problem-solving strategies far beyond the standard curriculum.',courseUrl('math-level-3'));
+            push(false,'Academic Year','Math Level 4','Deeper work in fractions, decimals, and introductory algebraic thinking for students who have completed Level 3.',courseUrl('math-level-4'));
+            push(false,'Academic Year','Math Level 5','Bridges elementary and middle school math with challenging problems in ratios, proportions, and pre-algebraic reasoning.',courseUrl('math-level-5'));
+          }
+        } else if (gradeGroup === '6-8') {
+          if (contest === 'yes') {
+            push(true, 'Academic Year','Middle School Contest Math','Trains students for MATHCOUNTS and AMC 8/10 — covering number theory, counting, probability, and advanced problem-solving strategies.',courseUrl('middle-contest-math'));
+            push(false,'Academic Year','Geometry','Rigorous Euclidean geometry with proofs and spatial reasoning at a depth far beyond standard school geometry.',courseUrl('geometry'));
+            push(false,'Academic Year','Algebra 2','Advanced algebra covering complex numbers, functions, and conic sections with a deep emphasis on creative problem-solving.',courseUrl('algebra-2'));
+          } else if (level === 'advanced' || contest === 'maybe') {
+            push(true, 'Academic Year','Algebra 2','Advanced middle school math covering complex numbers, functions, and conic sections for students who have completed Algebra 1.',courseUrl('algebra-2'));
+            push(false,'Academic Year','Geometry','Rigorous Euclidean geometry with proofs and spatial reasoning for students ready to work beyond standard school geometry.',courseUrl('geometry'));
+            push(false,'Academic Year','Middle School Contest Math','Even without competition goals, contest math builds exceptional creative problem-solving skills that benefit students throughout their academic careers.',courseUrl('middle-contest-math'));
+          } else if (level === 'ahead') {
+            push(true, 'Academic Year','Algebra 1','Covers linear equations, systems, polynomials, and quadratics through a rigorous, problem-solving–focused approach beyond any standard course.',courseUrl('algebra-1'));
+            push(false,'Academic Year','Geometry','For students who have completed Algebra 1 — a rigorous exploration of Euclidean geometry, proofs, and spatial reasoning.',courseUrl('geometry'));
+          } else {
+            push(true, 'Academic Year','Prealgebra','Introduces variables, ratios, and algebraic reasoning through challenging problems — an ideal starting point for motivated middle schoolers.',courseUrl('prealgebra'));
+            push(false,'Academic Year','Algebra 1','Covers linear equations, systems, polynomials, and quadratics at a rigorous, problem-solving–focused pace for students ready to move ahead.',courseUrl('algebra-1'));
+          }
+        } else if (gradeGroup === '9-12') {
+          if (contest === 'yes') {
+            push(true, 'Academic Year','High School Contest Math','Prepares students for AMC 10/12, AIME, and olympiad competitions with deep dives into number theory, combinatorics, and proof-writing.',courseUrl('high-contest-math'));
+            push(false,'Academic Year','Precalculus','Functions, trigonometry, and analytic geometry covered with rigorous depth that exceeds most school and AP courses.',courseUrl('precalculus'));
+            push(false,'Academic Year','Calculus','Limits, derivatives, integrals, and series — a rigorous treatment that goes beyond most AP Calculus courses.',courseUrl('calculus'));
+          } else if (level === 'advanced') {
+            push(true, 'Academic Year','Precalculus','Advanced high school mathematics covering functions, trigonometry, and analytic geometry at a depth that exceeds most AP courses.',courseUrl('precalculus'));
+            push(false,'Academic Year','Calculus','Limits, derivatives, integrals, and series for students who have completed Precalculus and are ready for the next challenge.',courseUrl('calculus'));
+          } else {
+            push(true, 'Academic Year','Algebra 2','Advanced algebra covering complex numbers, functions, and conic sections — a great starting point for high schoolers new to AoPS.',courseUrl('algebra-2'));
+            push(false,'Academic Year','Precalculus','Functions, trigonometry, and analytic geometry covered with rigorous depth for students who have completed Algebra 2.',courseUrl('precalculus'));
+          }
+        }
+      }
+      if (isSU) {
+        const p = !isAY;
+        if (gradeGroup === '1-2')   push(p,'Summer Camp','Math Beasts Camp (Elementary)','A fun and challenging summer math camp focused on number sense, puzzles, and mathematical exploration — perfect for young problem-solvers.',courseUrl('summer-math-2'));
+        else if (gradeGroup === '3-5') push(p,'Summer Camp','Math Beasts Summer Camp','Engaging 2-week camps offering topics like Games & Puzzles, Geometry & Spatial Thinking, and Number Theory — students choose the topic that sparks their curiosity.',courseUrl('summer-math-3'));
+        else if (gradeGroup === '6-8') {
+          if (contest === 'yes' || contest === 'maybe') push(p,'Summer Camp','AMC 8 / MATHCOUNTS Camp','Intensive summer prep for MATHCOUNTS and AMC 8/10 — competition strategies, problem-solving techniques, and key mathematical areas tested in contests.',courseUrl('acad-summer-math-mid-contests'));
+          else push(p,'Summer Camp','Math Camp 7–8: Algebra Exploration','Advanced summer math for middle schoolers covering algebraic thinking and problem-solving strategies well beyond the standard curriculum.',courseUrl('summer-math-7-8'));
+        } else if (gradeGroup === '9-12') {
+          if (contest === 'yes') push(p,'Summer Camp','AMC 10/12 Camp','High-intensity summer camp preparing students for AMC 10/12, AIME, and olympiad competitions across all competition math areas.',courseUrl('summer-math-high-contests'));
+          else push(p,'Summer Camp','Math Camp 8–9: Geometry Exploration','Challenging summer enrichment for high schoolers exploring geometry, proof techniques, and topics beyond the standard curriculum.',courseUrl('summer-math-8-9'));
+        }
+      }
+    }
+
+    if (subject === 'la' || subject === 'both') {
+      const p = subject === 'la';
+      if (isAY) {
+        if (gradeGroup === '1-2') {
+          push(p,'Academic Year','Language Arts Level 2','Develops foundational reading, writing, and critical thinking through engaging scenarios for early elementary students.',courseUrl('la-level-2'));
+        } else if (gradeGroup === '3-5') {
+          push(p,    'Academic Year','Language Arts Level 3','Builds reading comprehension, analytical writing, and creative expression for students in the 3rd–4th grade range.',courseUrl('la-level-3'));
+          push(false,'Academic Year','Language Arts Level 4','Strengthens analytical writing, literary analysis, and vocabulary for advancing 4th–5th grade students.',courseUrl('la-level-4'));
+          push(false,'Academic Year','Language Arts Level 5','Advanced elementary language arts covering persuasive writing, complex texts, and sophisticated analytical thinking.',courseUrl('la-level-5'));
+        } else if (gradeGroup === '6-8') {
+          if (level === 'advanced' || level === 'ahead') {
+            push(p,    'Academic Year','Rhetoric','Sharpens persuasive writing using classical rhetorical strategies — ideal for students ready to argue and analyze at a high level.',courseUrl('la-topics-rhetoric'));
+            push(false,'Academic Year','Exposition','Develops clear, compelling expository writing for students who want to communicate complex ideas with precision and structure.',courseUrl('la-topics-exposition'));
+          } else {
+            push(p,'Academic Year','Foundations in Middle School Language Arts','A strong middle school foundation covering argumentative and expository writing, reading comprehension, and literary analysis.',courseUrl('la-foundations'));
+          }
+        } else if (gradeGroup === '9-12') {
+          push(p,'Academic Year','Advanced Language Arts Seminar','Seminar-style high school writing covering sophisticated rhetorical strategies, advanced literary analysis, and polished academic writing.',courseUrl('la-adv-seminar'));
+        }
+      }
+      if (isSU) {
+        const laUrl = gradeGroup === '1-2' ? courseUrl('la-spy') : gradeGroup === '3-5' ? courseUrl('la-summer-creative-writing') : gradeGroup === '6-8' ? courseUrl('la-summer-mythology') : courseUrl('la-academic-essay');
+        push(p && !isAY,'Summer Camp','Language Arts Summer Camp','Creative and analytical writing camps that challenge students to think critically and push their creative limits through engaging prompts and collaborative activities.',laUrl);
+      }
+    }
+
+    if (subject === 'science') {
+      if (isAY) {
+        if (gradeGroup === '1-2' || gradeGroup === '3-5') push(true,'Academic Year','Elementary Science','Explores earth, life, and physical science through hands-on experiments and scientific problem-solving — students learn to think like scientists from an early age.',catalogUrl('academic-year'));
+        else if (gradeGroup === '6-8') push(true,'Academic Year','Middle School Science','A rigorous exploration of earth, life, and physical sciences through experiments, analysis, and problem-solving.',catalogUrl('academic-year'));
+        else if (gradeGroup === '9-12') push(true,'Academic Year','High School Science','Advanced science courses designed for high-achieving students, covering content at a depth and rigor that prepares them for AP exams and beyond.',catalogUrl('academic-year'));
+      }
+      if (isSU && campus && campus.hasSummerStem) push(!isAY,'Summer Camp','STEM Summer Camp','Hands-on science camps where students think like scientists, exploring real-world phenomena through creative experiments and collaborative problem-solving.',catalogUrl('summer'));
+    }
+
+    if (subject === 'cs')   push(true,'Academic Year','Computer Science','Courses in programming and computational thinking — AoPS Academy brings the same rigorous, problem-solving approach to computer science. Check the campus catalog for specific levels.',catalogUrl('academic-year'));
+    if (subject === 'stem') push(true,'Summer Camp','STEM Summer Camp','Hands-on science camps where students think like scientists — exploring real-world phenomena through creative experiments, discovery, and collaborative problem-solving.',catalogUrl('summer'));
+
+    return recs;
+  }
+
+  // ── Chat rendering ───────────────────────────────────────
+  function botBubble(html) {
+    return `<div class="msg bot"><div class="msg-av">🤖</div><div class="bubble">${html}</div></div>`;
+  }
+  function userBubble(text) {
+    return `<div class="msg user"><div class="bubble">${text}</div></div>`;
+  }
+
+  function renderChat() {
+    const body = document.getElementById('chatBody');
+    let html = '';
+
+    // Past exchanges
+    for (const h of history) {
+      html += botBubble(h.botHtml);
+      html += userBubble(h.userText);
+    }
+
+    // Current bot message
+    if (curBotHtml !== null) html += botBubble(curBotHtml);
+
+    // Current interaction
+    if (curType === 'qr' && qrItems.length) {
+      html += '<div class="qr-group">';
+      qrItems.forEach((item, i) => {
+        html += `<button class="qr-btn" onclick="handleQR(${i})">${item.label}</button>`;
+      });
+      html += '</div>';
+    } else if (curType === 'campus') {
+      html += buildCampusPicker();
+    }
+
+    body.innerHTML = html;
+    requestAnimationFrame(() => { body.scrollTop = body.scrollHeight; });
+  }
+
+  function buildCampusPicker() {
+    const groups = {};
+    for (const c of CAMPUSES) {
+      if (!groups[c.group]) groups[c.group] = [];
+      groups[c.group].push(c);
+    }
+    let html = '<div class="campus-chat-wrap"><div class="campus-chat-box">';
+    for (const [grp, list] of Object.entries(groups)) {
+      html += `<div class="campus-grp-hd">${grp}</div><div class="campus-chips">`;
+      for (const c of list) {
+        const label = c.state === 'Online' ? c.name : `${c.name}, ${c.state}`;
+        const hasSci = c.aySubjects.includes('science');
+        const hasCS  = c.aySubjects.includes('cs');
+        const tag = hasCS ? `<span class="ctag cs">Sci+CS</span>` : hasSci ? `<span class="ctag sci">+Sci</span>` : '';
+        html += `<button class="campus-chip" onclick="pickCampus('${c.id}','${label.replace(/'/g,"&#39;")}')">${label}${tag}</button>`;
+      }
+      html += '</div>';
+    }
+    html += '</div></div>';
+    return html;
+  }
+
+  // ── Option handlers ──────────────────────────────────────
+  function handleQR(idx) {
+    const item = qrItems[idx];
+    if (!item) return;
+    history.push({ botHtml: curBotHtml, userText: item.label });
+    curBotHtml = '<span class="typing-dots"><span></span><span></span><span></span></span>';
+    curType = null; qrItems = [];
+    renderChat();
+    setTimeout(() => { curBotHtml = null; item.handler(); }, 380);
+  }
+
+  function pickCampus(campusId, campusLabel) {
+    history.push({ botHtml: curBotHtml, userText: campusLabel });
+    curBotHtml = '<span class="typing-dots"><span></span><span></span><span></span></span>';
+    curType = null; qrItems = [];
+    state.campus = campusId;
+    clearDownstream('campus');
+    renderChat();
+    setTimeout(() => { curBotHtml = null; advanceStep(); renderChat(); }, 380);
+  }
+
+  // ── Flow control ─────────────────────────────────────────
+  let _stepIndex = -1; // -1 = before first question
+
+  function advanceStep() {
+    _stepIndex++;
+    showCurrentStep();
+  }
+
+  function showCurrentStep() {
+    const steps = buildSteps();
+
+    if (_stepIndex >= steps.length) {
+      showResult(); return;
+    }
+
+    const step = steps[_stepIndex];
+
+    if (step.type === 'campus') {
+      curBotHtml = 'Great! Which campus are you interested in?';
+      curType = 'campus';
+      qrItems = [];
+    } else {
+      curBotHtml = step.question;
+      curType = 'qr';
+      qrItems = step.options.map(opt => ({
+        label: opt.icon ? `${opt.icon} ${opt.label}` : opt.label,
+        handler: () => {
+          state[step.id] = opt.value;
+          clearDownstream(step.id);
+          advanceStep();
+          if (botPhase !== 'done') renderChat();
+        }
+      }));
+    }
+  }
+
+  function showResult() {
+    const recs   = getRecommendations();
+    const campus = getCampus();
+    const campusLabel = campus ? (campus.state === 'Online' ? campus.name : `${campus.name}, ${campus.state}`) : 'AoPS Academy';
+    const campusUrl   = campus ? campus.url : 'https://aopsacademy.org';
+
+    const primary = recs.find(r => r.primary) || recs[0];
+    const others  = recs.filter(r => r !== primary);
+
+    function card(rec, isPrimary, badge) {
+      return `<div class="result-card${isPrimary ? ' primary' : ''}">
+        <div class="rbadge">${badge}</div>
+        <div class="rtitle">${rec.name}</div>
+        <div class="rdesc">${rec.desc}</div>
+        <div class="rfooter">
+          <span class="rtype">${rec.type}</span>
+          ${rec.url ? `<a class="rlink" href="${rec.url}" target="_blank">View course →</a>` : ''}
+        </div>
+      </div>`;
+    }
+
+    let resultHtml = `Here's what I'd recommend at <strong>${campusLabel}</strong>:`;
+    resultHtml += `</div>`; // close bubble early so cards appear below
+
+    // Result cards
+    let cardsHtml = '<div class="result-cards-wrap">';
+    if (primary) cardsHtml += card(primary, true,  '⭐ Best Match');
+    for (const r of others) cardsHtml += card(r, false, 'Also Consider');
+    cardsHtml += '</div>';
+
+    // Consultation note + action button
+    const prog = state.program;
+    let consultText, actionBtn;
+    if (prog === 'summer') {
+      consultText = '☀️ <strong>Next step:</strong> Summer camps don\'t require a placement consultation — just click on a course above to enroll directly on our website.';
+      actionBtn = `<a class="qr-btn" href="${campusUrl}" target="_blank" style="text-decoration:none">Visit ${campus ? campus.name : 'AoPS'} →</a>`;
+    } else if (prog === 'both') {
+      consultText = '💡 <strong>Next step:</strong> Academic year courses require a free placement consultation. Summer camps can be enrolled in directly by clicking on the course above.';
+      actionBtn = `<a class="qr-btn" href="https://aopsacademy.org/contact-us" target="_blank" style="text-decoration:none">Request a consultation →</a>`;
+    } else {
+      consultText = '💡 <strong>Next step:</strong> Academic year courses require a free placement consultation before enrollment.';
+      actionBtn = `<a class="qr-btn" href="https://aopsacademy.org/contact-us" target="_blank" style="text-decoration:none">Request a consultation →</a>`;
+    }
+
+    const consultHtml = `<div class="consult-wrap"><div class="consult-box">${consultText}</div></div>`;
+
+    curBotHtml = `Here's what I'd recommend at <strong>${campusLabel}</strong>:`;
+    curType = null;
+    botPhase = 'done';
+    renderChat();
+
+    // Append result cards, consult box, and restart button after bot bubble
+    const body = document.getElementById('chatBody');
+    body.insertAdjacentHTML('beforeend', cardsHtml + consultHtml +
+      `<div class="qr-group" style="padding-left:0">
+         ${actionBtn}
+         <button class="qr-btn" onclick="restartChat()" style="border-color:#94a9c4;color:#94a9c4">↩ Start over</button>
+       </div>`);
+    body.scrollTop = body.scrollHeight;
+  }
+
+  // ── Widget open/close ────────────────────────────────────
+  function openChat() {
+    chatOpen = true;
+    document.getElementById('chatWindow').classList.remove('hidden');
+    document.getElementById('launcher').innerHTML = '<span style="font-size:1rem">✕</span> Close';
+
+    if (history.length === 0 && curBotHtml === null) {
+      // First open — show greeting
+      curBotHtml = 'Hello! Welcome to <strong>AoPS Academy!</strong> 👋 I\'m Solver Bot — I\'m here to help you find the perfect course or camp for your student.<br><span class="bubble-sub">This usually takes less than a minute.</span>';
+      curType = 'qr';
+      qrItems = [
+        { label: "Yes, let's find a course!", handler: () => { _stepIndex = -1; advanceStep(); renderChat(); } },
+        { label: 'No thanks',                 handler: () => closeChat() }
+      ];
+      renderChat();
+    }
+  }
+
+  function closeChat() {
+    chatOpen = false;
+    document.getElementById('chatWindow').classList.add('hidden');
+    document.getElementById('launcher').innerHTML = '<span class="launcher-dot"></span> Chat with Solver Bot';
+  }
+
+  function toggleChat() {
+    if (chatOpen) closeChat(); else openChat();
+  }
+
+  function restartChat() {
+    history = []; curBotHtml = null; curType = null; qrItems = []; _stepIndex = -1;
+    botPhase = 'greeting';
+    Object.keys(state).forEach(k => delete state[k]);
+    openChat();
+    curBotHtml = 'Hello again! 👋 Let\'s find another course for your student.';
+    curType = 'qr';
+    qrItems = [
+      { label: "Yes, let's find a course!", handler: () => { _stepIndex = -1; advanceStep(); renderChat(); } },
+      { label: 'No thanks',                 handler: () => closeChat() }
+    ];
+    renderChat();
+  }
+
+  // ── Auto-open after a short delay ────────────────────────
+  setTimeout(() => {
+    if (!chatOpen) openChat();
+  }, 1400);
+</script>
+</body>
+</html>
