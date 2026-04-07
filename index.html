@@ -509,7 +509,12 @@
     curBotHtml = `Based on ${placeName}, your nearest campus is <strong>${nearest.name}</strong> — about ${miles} mile${miles === 1 ? '' : 's'} away. <a href="${nearest.url}" target="_blank" style="color:#61ad00;font-weight:700">View campus page →</a>`;
     curType = null;
     renderChat();
-    setTimeout(() => { advanceStep(); renderChat(); }, 1400);
+    setTimeout(() => {
+      history.push({ botHtml: curBotHtml, userText: null });
+      curBotHtml = null;
+      advanceStep();
+      renderChat();
+    }, 1400);
   }
 
   function pickNotSure() {
@@ -538,11 +543,12 @@
     navigator.geolocation.getCurrentPosition(
       pos => { findNearestCampus(pos.coords.latitude, pos.coords.longitude, 'your location'); },
       ()  => {
-        curBotHtml = "I wasn't able to access your location. No worries — enter your ZIP code below instead.";
-        curType = 'zipinput';
+        curBotHtml = "No problem! Location access was blocked — you can enter your ZIP code below instead.";
+        curType = 'locationinput';
         renderChat();
         requestAnimationFrame(() => { const el = document.getElementById('zipInput'); if (el) el.focus(); });
-      }
+      },
+      { timeout: 10000, maximumAge: 0 }
     );
   }
 
@@ -802,7 +808,7 @@
 
     for (const h of history) {
       html += botBubble(h.botHtml);
-      html += userBubble(h.userText);
+      if (h.userText) html += userBubble(h.userText);
     }
 
     if (curBotHtml !== null) html += botBubble(curBotHtml);
@@ -861,7 +867,7 @@
     }
     html += '</div></div>';
     html += `<div style="padding:8px 0 2px 34px">
-      <button class="campus-chip" onclick="pickNotSure()" style="border-color:#82ba50;color:#3a6020;width:calc(100% - 34px);justify-content:center">🤷 Not sure — help me find the nearest campus</button>
+      <button class="campus-chip" onclick="pickNotSure()" style="border-color:#82ba50;color:#3a6020;width:calc(100% - 34px);justify-content:center;white-space:normal;text-align:center;line-height:1.4">📍 Help me find the nearest campus</button>
     </div>`;
     return html;
   }
